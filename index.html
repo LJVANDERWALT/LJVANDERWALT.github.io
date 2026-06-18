@@ -6,6 +6,9 @@
 <title>Leon Van Der Walt | Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
 <style>
 :root {
   --bg: #0a0d14;
@@ -479,6 +482,46 @@ section { padding: 100px 5%; }
 }
 .contact-card a:hover { color: var(--accent); }
 
+.code-window {
+  background: #1e1e2e;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  border: 1px solid #2a2a3d;
+}
+
+.code-window-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  background: #2a2a3d;
+}
+
+.code-window-header span {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-red { background: #ff5f56; }
+.dot-yellow { background: #ffbd2e; }
+.dot-green { background: #27c93f; }
+
+.code-window pre {
+  margin: 0;
+  padding: 16px;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-x: auto;
+  max-height: 260px;
+}
+
+.code-window pre::-webkit-scrollbar {
+  height: 6px;
+}
+
 /* FOOTER */
 footer {
   background: var(--bg);
@@ -731,7 +774,7 @@ footer p { color: var(--muted); font-size: 0.82rem; }
     letter-spacing: 0.04em;
   }
 
-  /* Read more / expand section */
+  /* Read more */
   .project-extra {
     max-height: 0;
     overflow: hidden;
@@ -747,16 +790,16 @@ footer p { color: var(--muted); font-size: 0.82rem; }
 
   .extra-diagrams {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(1fr);
     gap: 8px;
     margin-bottom: 12px;
   }
 
-  .extra-diagrams img,
-  .extra-diagrams video {
+  .extra-diagrams img {
     width: 100%;
-    aspect-ratio: 4 / 3;
-    object-fit: cover;
+    aspect-ratio: 16 / 9;
+    object-fit: contain;
+    background: #fff;
     border-radius: 6px;
     border: 1px solid #e5e5e5;
     cursor: pointer;
@@ -789,7 +832,7 @@ footer p { color: var(--muted); font-size: 0.82rem; }
 
 <script>
   function toggleExpand(e, btn) {
-    e.stopPropagation(); // keep this from bubbling up to the card itself
+    e.stopPropagation(); 
     const extra = btn.previousElementSibling;
     const isOpen = btn.classList.contains('open');
 
@@ -845,7 +888,61 @@ footer p { color: var(--muted); font-size: 0.82rem; }
     <div class="project-extra">
       <div class="extra-diagrams">
         <img src="Fan.png" alt="Block diagram for fan control system">
-        <video src="IMG_2679.mp4" muted autoplay loop playsinline></video>
+      </div>
+      <div class="code-window">
+        <div class="code-window-header">
+          <span class="dot-red"></span>
+          <span class="dot-yellow"></span>
+          <span class="dot-green"></span>
+        </div>
+        <pre><code class="language-cpp">
+          const int startButton = 8;
+          const int stopButton = 9;
+          
+          const int greenLED = 5;
+          const int redLED = 6;
+          
+          const int motorPin = 7;
+          
+          bool fanRunning = false;
+          
+          void setup()
+          {
+            pinMode(startButton, INPUT_PULLUP);
+            pinMode(stopButton, INPUT_PULLUP);
+          
+            pinMode(greenLED, OUTPUT);
+            pinMode(redLED, OUTPUT);
+          
+            pinMode(motorPin, OUTPUT);
+          
+            digitalWrite(redLED, HIGH);
+          }
+          
+          void loop()
+          {
+            if (digitalRead(startButton) == LOW)
+            {
+              fanRunning = true;
+            }
+            if (digitalRead(stopButton) == LOW)
+            {
+              fanRunning = false;
+            }
+            if (fanRunning)
+            {
+              digitalWrite(greenLED, HIGH);
+              digitalWrite(redLED, LOW);
+              digitalWrite(motorPin, HIGH);
+            }
+            else
+            {
+              digitalWrite(greenLED, LOW);
+              digitalWrite(redLED, HIGH);
+              digitalWrite(motorPin, LOW);
+            }
+          }
+        </code></pre>
       </div>
       <p>Through this project I learned how to use digital inputs and outputs, control a DC motor using an L293D motor driver, implement latching logic, troubleshoot wiring issues and interpret breadboard layouts and pin configurations.</p>
     </div>
