@@ -592,6 +592,7 @@ footer p { color: var(--muted); font-size: 0.82rem; }
           <div class="value">- Drivers Licence<span>✓</span></div>
           <div class="value">- CPR & First Aid<span>✓</span></div>
           <div class="value">- Cert II in Construction<span>✓</span></div>
+          <div class="value">- Working Safely at Heights<span>✓</span></div>
           <div class="value">- Diploma in IT<span>✓</span></div>
           <div class="value">- LF Forklift<span>✓</span></div>
         </div>
@@ -790,7 +791,7 @@ footer p { color: var(--muted); font-size: 0.82rem; }
 
   .extra-diagrams {
     display: grid;
-    grid-template-columns: repeat(1fr);
+    grid-template-columns: 1fr;
     gap: 8px;
     margin-bottom: 12px;
   }
@@ -803,6 +804,14 @@ footer p { color: var(--muted); font-size: 0.82rem; }
     border-radius: 6px;
     border: 1px solid #e5e5e5;
     cursor: pointer;
+  }
+  .extra-diagrams video {
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 6px;
+  border: 1px solid #e5e5e5;
   }
 
   .read-more-btn {
@@ -961,12 +970,156 @@ footer p { color: var(--muted); font-size: 0.82rem; }
 <!-- CARD 3 -->
 <div class="project-media-card" data-cat="electrical">
   <div class="project-thumb">
-    <video src="IMG_2675.mp4" muted autoplay loop playsinline></video>
+    <video src="IMG_2691.mp4" muted autoplay loop playsinline></video>
     <span class="media-badge badge-video">Video</span>
   </div>
   <div class="project-media-body">
-    <h3>LCD</h3>
-    <p>Testing a LCD and using C++ to print my name on display</p>
+    <h3>Smart Security Light Controller with Manual Override and Fault Detection</h3>
+    <p>When the LDR detects darkness, such as when the sensor is covered by a hand, the system enters its active operating state. If the PIR motion sensor detects movement while the environment is dark, the green LED illuminates to simulate a security light. The light remains on for a preset period before automatically switching off if no further motion is detected, demonstrating the use of timers and automation logic.</p>
+    <div class="project-extra">
+      <div class="extra-diagrams">
+        <video src="IMG_2690.mp4" muted autoplay loop playsinline></video>
+        <p>The Smart Security Light Controller is designed to operate only in low-light conditions. An LDR continuously measures the surrounding light level. When the area is brightly lit, such as when a flashlight is shone directly onto the sensor, the controller prevents the security light from turning on even if motion is detected. This simulates the behaviour of commercial outdoor security lighting, conserving energy by only operating when illumination is required.</p>
+        <video src="IMG_2692.mp4" muted autoplay loop playsinline></video>
+        <p>A manual override function has been implemented using a push button. Pressing the button switches the controller into Manual Mode, indicated by a blue LED. In this mode, the security light remains on continuously regardless of the PIR sensor or ambient light level. Pressing the button again returns the controller to Automatic Mode, allowing the motion and light sensors to resume normal operation.</p>
+        <video src="IMG_2693.mp4" muted autoplay loop playsinline></video>
+        <p>The controller also includes a basic fault detection feature. During operation, disconnecting the ground wire from the LDR simulates a sensor failure. When this occurs, the controller detects the abnormal sensor reading, illuminates the red fault LED and indicates that a fault has been detected. Once the ground wire is reconnected, the sensor returns to normal operation, the red fault indicator switches off and the controller resumes automatic operation. This demonstrates simple fault monitoring and recovery, similar to features found in industrial automation and control systems.</p>
+      </div>
+      <div class="code-window">
+        <div class="code-window-header">
+          <span class="dot-red"></span>
+          <span class="dot-yellow"></span>
+          <span class="dot-green"></span>
+        </div>
+        <pre><code class="language-cpp">
+          // Pins
+          const int pirPin = 2;
+          const int buttonPin = 3;
+          
+          const int greenLed = 8;
+          const int blueLed = 9;
+          const int redLed = 10;
+          
+          const int ldrPin = A0;
+          
+          // Settings
+          const int darkThreshold = 550;          
+          const unsigned long lightTime = 10000;  
+          
+          // Variables
+          bool manualMode = false;
+          bool lastButtonState = HIGH;
+          bool lastMotion = LOW;
+          
+          unsigned long lightTimer = 0;
+          
+          void setup()
+          {
+            pinMode(pirPin, INPUT);
+            pinMode(buttonPin, INPUT_PULLUP);
+          
+            pinMode(greenLed, OUTPUT);
+            pinMode(blueLed, OUTPUT);
+            pinMode(redLed, OUTPUT);
+          
+            Serial.begin(9600);
+          }
+          
+          void loop()
+          {
+            // Read Sensors
+            int motion = digitalRead(pirPin);
+            int lightLevel = analogRead(ldrPin);
+          
+            // Manaual Mode Button
+            bool currentButton = digitalRead(buttonPin);
+          
+            if (lastButtonState == HIGH && currentButton == LOW)
+            {
+              manualMode = !manualMode;
+              delay(50); 
+            }
+          
+            lastButtonState = currentButton;
+          
+            // Motion Timer
+            if (motion == HIGH && lastMotion == LOW && lightLevel < darkThreshold)
+            {
+              lightTimer = millis();
+            }
+          
+            lastMotion = motion;
+          
+            // Fault Detection
+            bool fault = false;
+          
+            if (lightLevel <= 5 || lightLevel >= 1018)
+            {
+              fault = true;
+            }
+          
+            digitalWrite(redLed, fault);
+          
+            // Lighting Control
+            if (manualMode)
+            {
+              digitalWrite(blueLed, HIGH);
+              digitalWrite(greenLed, HIGH);
+            }
+            else
+            {
+              digitalWrite(blueLed, LOW);
+          
+              if (!fault)
+              {
+                if (millis() - lightTimer < lightTime)
+                {
+                  digitalWrite(greenLed, HIGH);
+                }
+                else
+                {
+                  digitalWrite(greenLed, LOW);
+                }
+              }
+              else
+              {
+                digitalWrite(greenLed, LOW);
+              }
+            }
+          
+          // Serial Monitor
+            Serial.print("Mode: ");
+            Serial.print(manualMode ? "MANUAL" : "AUTO");
+          
+            Serial.print(" | Motion: ");
+            Serial.print(motion ? "YES" : "NO");
+          
+            Serial.print(" | Light Level: ");
+            Serial.print(lightLevel);
+          
+            Serial.print(" | ");
+            if (lightLevel < darkThreshold)
+              Serial.print("DARK");
+            else
+              Serial.print("BRIGHT");
+          
+            Serial.print(" | Green LED: ");
+            Serial.print(digitalRead(greenLed) ? "ON" : "OFF");
+          
+            Serial.print(" | Fault: ");
+            Serial.println(fault ? "YES" : "NO");
+          } 
+        </code></pre>
+      </div>
+    </div>
+
+    <button class="read-more-btn" onclick="toggleExpand(event, this)">
+      <span class="btn-label">Read more</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 9l6 6 6-6"/>
+      </svg>
+    </button>
+
     <span class="project-media-tag">Electrical</span>
   </div>
 </div>
